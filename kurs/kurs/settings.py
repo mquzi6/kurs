@@ -122,3 +122,10 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+# Для статики в продакшене
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Для медиа-файлов (загруженные пользователем картинки и т.д.)
+# Важно: MEDIA_ROOT должен быть вне папки с кодом проекта
+# В продакшене лучше использовать переменную окружения или облачное хранилище
+MEDIA_ROOT = BASE_DIR / 'media'
