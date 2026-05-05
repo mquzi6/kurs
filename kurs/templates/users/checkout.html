@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Оформление заказа — Магазин цифровой техники{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-4">Оформление заказа</h1>
+
+<div class="row">
+  <!-- Форма оформления -->
+  <div class="col-lg-8">
+    <form method="post" action="{% url 'checkout' %}">
+      {% csrf_token %}
+      
+      <!-- Контактная информация -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Контактная информация</h5>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="first_name" class="form-label">Имя *</label>
+              <input type="text" class="form-control" id="first_name" name="first_name" required value="{{ initial_data.first_name|default:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label for="last_name" class="form-label">Фамилия *</label>
+              <input type="text" class="form-control" id="last_name" name="last_name" required value="{{ initial_data.last_name|default:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Email *</label>
+              <input type="email" class="form-control" id="email" name="email" required value="{{ initial_data.email|default:'' }}">
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Телефон *</label>
+              <input type="tel" class="form-control" id="phone" name="phone" required placeholder="+7 (999) 000-00-00">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Доставка -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Доставка</h5>
+          <div class="mb-3">
+            <label class="form-label">Способ доставки</label>
+            <select class="form-select" id="delivery_method" name="delivery_method" required>
+              {% for value, label, price in shipping_options %}
+              <option value="{{ value }}" data-price="{{ price }}">{{ label }}{% if price > 0 %} — {{ price }} ₽{% else %} (бесплатно){% endif %}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div id="delivery_address_group" class="mb-3" style="display: none;">
+            <label for="delivery_address" class="form-label">Адрес доставки</label>
+            <textarea class="form-control" id="delivery_address" name="delivery_address" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Оплата -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Оплата</h5>
+          <div class="mb-3">
+            <label class="form-label">Способ оплаты</label>
+            <select class="form-select" id="payment_method" name="payment_method" required>
+              {% for value, label in payment_options %}
+              <option value="{{ value }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Заметки -->
+      <div class="card mb-4">
+        <div class="card-body">
+          <h5 class="card-title">Заметки к заказу</h5>
+          <textarea class="form-control" id="notes" name="notes" rows="3" placeholder="Комментарий к заказу (необязательно)"></textarea>
+        </div>
+      </div>
+    </div>
+  
+  <!-- Итоговая сумма -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Ваш заказ</h5>
+        
+        <!-- Товары -->
+        <div class="mb-3">
+          {% for item in cart_items %}
+          <div class="d-flex justify-content-between mb-2">
+            <span>{{ item.product.title|truncatechars:30 }}</span>
+            <span>{{ item.quantity }} × {{ item.product.price|floatformat:0 }} ₽</span>
+          </div>
+          {% endfor %}
+        </div>
+        
+        <hr>
+        
+        <!-- Суммы -->
+        <div class="d-flex justify-content-between mb-2">
+          <span>Товары:</span>
+          <span>{{ total_price|floatformat:0 }} ₽</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span>Доставка:</span>
+          <span id="shipping_price">0 ₽</span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span>Скидка:</span>
+          <span>0 ₽</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between mb-4">
+          <strong class="h4">Итого:</strong>
+          <strong class="h4" id="total_price">{{ total_price|floatformat:0 }} ₽</strong>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-lg w-100">
+          Подтвердить заказ
+        </button>
+        <small class="text-muted d-block mt-2 text-center">
+          Нажима кнопку, вы соглашаетесь с условиями оферты
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const deliveryMethod = document.getElementById('delivery_method');
+  const deliveryAddressGroup = document.getElementById('delivery_address_group');
+  const shippingPriceEl = document.getElementById('shipping_price');
+  const totalPriceEl = document.getElementById('total_price');
+  const baseTotal = {{ total_price|floatformat:2 }};
+  
+  function updateShipping() {
+    const selectedOption = deliveryMethod.options[deliveryMethod.selectedIndex];
+    const price = parseInt(selectedOption.dataset.price) || 0;
+    const needsAddress = selectedOption.value !== 'pickup' && selectedOption.value !== 'digital';
+    
+    deliveryAddressGroup.style.display = needsAddress ? 'block' : 'none';
+    shippingPriceEl.textContent = price > 0 ? price + ' ₽' : 'бесплатно';
+    totalPriceEl.textContent = (baseTotal + price).toFixed(0) + ' ₽';
+  }
+  
+  deliveryMethod.addEventListener('change', updateShipping);
+  updateShipping(); // Инициализация
+});
+</script>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Каталог — Магазин цифровой техники{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+  <div class="col-12 d-flex justify-content-between align-items-center">
+    <h1 class="h3">Каталог цифровой техники</h1>
+    <form class="d-flex" method="get">
+      <input name="q" class="form-control me-2" type="search" placeholder="Поиск по товарам" value="{{ request.GET.q }}">
+      <button class="btn btn-outline-secondary" type="submit">Искать</button>
+    </form>
+  </div>
+</div>
+
+<div class="row mb-3">
+  <div class="col-md-3">
+    <h6>Фильтры</h6>
+    <div class="list-group">
+      <a href="?category=all" class="list-group-item list-group-item-action">Все</a>
+      {% for cat in categories %}
+        <a href="?category={{ cat.slug }}" class="list-group-item list-group-item-action">{{ cat.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="col-md-9">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+      {% for product in products %}
+        {% include "products/product_card.html" %}
+      {% empty %}
+        <div class="col"><div class="alert alert-info">Товары не найдены.</div></div>
+      {% endfor %}
+    </div>
+
+    <nav class="mt-4">
+      {% if is_paginated %}
+        <ul class="pagination">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Назад</a></li>
+          {% else %}<li class="page-item disabled"><span class="page-link">Назад</span></li>{% endif %}
+          <li class="page-item disabled"><span class="page-link">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Вперёд</a></li>
+          {% else %}<li class="page-item disabled"><span class="page-link">Вперёд</span></li>{% endif %}
+        </ul>
+      {% endif %}
+    </nav>
+  </div>
+</div>
+{% endblock %}

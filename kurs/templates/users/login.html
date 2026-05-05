@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Вход — Магазин цифровой техники{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">Вход</h2>
+        
+        {% if form.errors %}
+        <div class="alert alert-danger">
+          <strong>Ошибка!</strong> Неверное имя пользователя или пароль.
+        </div>
+        {% endif %}
+        
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="id_username" class="form-label">Имя пользователя</label>
+            <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+          </div>
+          <div class="mb-3">
+            <label for="id_password" class="form-label">Пароль</label>
+            <input type="password" name="password" id="id_password" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Войти</button>
+        </form>
+        
+        <hr class="my-4">
+        
+        <p class="text-center text-muted">
+          Нет аккаунта? <a href="{% url 'signup' %}">Зарегистрироваться</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}{{ product.title }} — Магазин цифровой техники{% endblock %}
+
+{% block content %}
+<div class="row">
+  <!-- Изображение товара -->
+  <div class="col-md-6 mb-4">
+    <div class="card">
+      <img src="{{ product.image.url|default:'https://via.placeholder.com/600x400?text=No+Image' }}" 
+           class="card-img-top" alt="{{ product.title }}" style="max-height: 500px; object-fit: contain;">
+    </div>
+    {% if product.images.all %}
+    <div class="row mt-2">
+      {% for img in product.images.all|slice:":4" %}
+      <div class="col-3">
+        <img src="{{ img.image.url }}" class="img-thumbnail" alt="Дополнительное изображение">
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Информация о товаре -->
+  <div class="col-md-6">
+    <h1 class="h2">{{ product.title }}</h1>
+    
+    {% if product.brand %}
+    <p class="text-muted">Бренд: <strong>{{ product.brand }}</strong></p>
+    {% endif %}
+    
+    {% if product.category %}
+    <p class="text-muted">Категория: <a href="?category={{ product.category.slug }}">{{ product.category.name }}</a></p>
+    {% endif %}
+    
+    {% if product.sku %}
+    <p class="text-muted">Артикул: <strong>{{ product.sku }}</strong></p>
+    {% endif %}
+    
+    <!-- Рейтинг -->
+    {% if avg_rating %}
+    <div class="mb-3">
+      <span class="text-warning">
+        {% for i in "12345"|make_list %}
+          {% if forloop.counter <= avg_rating %}★{% else %}☆{% endif %}
+        {% endfor %}
+      </span>
+      <span class="text-muted">({{ avg_rating }} из 5)</span>
+    </div>
+    {% endif %}
+    
+    <!-- Цена -->
+    <div class="mb-4">
+      {% if product.has_discount %}
+      <span class="text-muted text-decoration-line-through h4">{{ product.old_price|floatformat:0 }} ₽</span>
+      <span class="text-danger h3">{{ product.price|floatformat:0 }} ₽</span>
+      <span class="badge bg-danger ms-2">-{{ product.get_discount_percentage }}%</span>
+      {% else %}
+      <span class="h3">{{ product.price|floatformat:0 }} ₽</span>
+      {% endif %}
+    </div>
+    
+    <!-- Наличие -->
+    <div class="mb-4">
+      {% if product.stock > 0 %}
+      <span class="badge bg-success">В наличии: {{ product.stock }} шт.</span>
+      {% else %}
+      <span class="badge bg-danger">Нет в наличии</span>
+      {% endif %}
+    </div>
+    
+    <!-- Описание -->
+    <div class="mb-4">
+      <h5>Описание</h5>
+      <p>{{ product.description|linebreaks }}</p>
+    </div>
+    
+    <!-- Характеристики -->
+    {% if product.specifications %}
+    <div class="mb-4">
+      <h5>Характеристики</h5>
+      <table class="table table-sm table-bordered">
+        {% for key, value in product.specifications.items %}
+        <tr>
+          <th scope="row" class="w-50">{{ key }}</th>
+          <td>{{ value }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    {% endif %}
+    
+    <!-- Форма добавления в корзину -->
+    {% if product.stock > 0 %}
+    <form action="{% url 'cart-add' %}" method="post" class="mb-4">
+      {% csrf_token %}
+      <input type="hidden" name="product_id" value="{{ product.id }}">
+      <div class="row g-2 align-items-center">
+        <div class="col-auto">
+          <label for="quantity" class="col-form-label">Количество:</label>
+        </div>
+        <div class="col-auto">
+          <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="{{ product.stock }}" style="width: 80px;">
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary btn-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart-plus" viewBox="0 0 16 16">
+              <path d="M9 5.5a.5.5 0 0 0-1 0V7H6.5a.5.5 0 0 0 0 1H8v1.5a.5.5 0 0 0 1 0V8h1.5a.5.5 0 0 0 0-1H9z"/>
+              <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 0-1 1 1 0 0 1 0-2 1 1 0 0 1 0 2 .5.5 0 0 0 0 1H5a.5.5 0 0 1-.478-.357L3.336 7.5H.5zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+            </svg>
+            В корзину
+          </button>
+        </div>
+        <div class="col-auto">
+          <button type="button" class="btn btn-outline-danger" onclick="addToWishlist({{ product.id }})">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+              <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01z"/>
+            </svg>
+            В избранное
+          </button>
+        </div>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Отзывы -->
+<div class="row mt-5">
+  <div class="col-12">
+    <h3>Отзывы</h3>
+    
+    {% if reviews %}
+      {% for review in reviews %}
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <h6 class="card-subtitle mb-2 text-muted">{{ review.user.get_full_name|default:review.user.username }}</h6>
+            <small class="text-muted">{{ review.created_at|date:"d.m.Y" }}</small>
+          </div>
+          <div class="text-warning mb-2">
+            {% for i in "12345"|make_list %}
+              {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}
+            {% endfor %}
+          </div>
+          {% if review.title %}
+          <h6 class="card-title">{{ review.title }}</h6>
+          {% endif %}
+          <p class="card-text">{{ review.comment|linebreaks }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+    <p class="text-muted">Отзывов пока нет. Будьте первым!</p>
+    {% endif %}
+    
+    <!-- Форма добавления отзыва -->
+    {% if user.is_authenticated %}
+    <div class="card mt-4">
+      <div class="card-body">
+        <h5 class="card-title">Оставить отзыв</h5>
+        <form action="{% url 'review-create' product.id %}" method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="rating" class="form-label">Оценка</label>
+            <select name="rating" id="rating" class="form-select" required>
+              <option value="5">5 - Отлично</option>
+              <option value="4">4 - Хорошо</option>
+              <option value="3">3 - Нормально</option>
+              <option value="2">2 - Плохо</option>
+              <option value="1">1 - Очень плохо</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="title" class="form-label">Заголовок</label>
+            <input type="text" name="title" id="title" class="form-control" maxlength="200">
+          </div>
+          <div class="mb-3">
+            <label for="comment" class="form-label">Комментарий</label>
+            <textarea name="comment" id="comment" class="form-control" rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-4">
+      <a href="/login/">Войдите</a>, чтобы оставить отзыв.
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Похожие товары -->
+{% if similar_products %}
+<div class="row mt-5">
+  <div class="col-12">
+    <h3>Похожие товары</h3>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+      {% for p in similar_products %}
+        {% include "products/product_card.html" with product=p %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}История заказов — Магазин цифровой техники{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-4">История заказов</h1>
+
+{% if orders %}
+<div class="row">
+  <div class="col-12">
+    <div class="list-group">
+      {% for order in orders %}
+      <a href="{% url 'order_detail' order.order_number %}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+          <h6 class="mb-1">Заказ {{ order.order_number }}</h6>
+          <small>{{ order.created_at|date:"d.m.Y H:i" }}</small>
+        </div>
+        <p class="mb-1">
+          {% if order.status == 'pending' %}
+          <span class="badge bg-warning">Ожидает подтверждения</span>
+          {% elif order.status == 'processing' %}
+          <span class="badge bg-info">В обработке</span>
+          {% elif order.status == 'shipped' %}
+          <span class="badge bg-primary">Отправлен</span>
+          {% elif order.status == 'delivered' %}
+          <span class="badge bg-success">Доставлен</span>
+          {% elif order.status == 'cancelled' %}
+          <span class="badge bg-danger">Отменен</span>
+          {% endif %}
+          {{ order.get_total_items }} товаров на сумму {{ order.total|floatformat:0 }} ₽
+        </p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+  <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-bag-x text-muted mb-3" viewBox="0 0 16 16">
+    <path fill-rule="evenodd" d="M8 1a2.5 2.5 0 0 1 2.5 2.5V4h-5v-.5A2.5 2.5 0 0 1 8 1m3.5 3v-.5a3.5 3.5 0 1 0-7 0V4H1v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4zM2 5v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5z"/>
+    <path fill-rule="evenodd" d="M6.354 5.354 8 7l1.646-1.646a.5.5 0 0 1 .708.708L8.708 7.708 10.354 9.354a.5.5 0 0 1-.708.708L8 8.414 6.354 10.06a.5.5 0 0 1-.708-.708L7.292 7.708 5.646 6.06a.5.5 0 0 1 .708-.708"/>
+  </svg>
+  <h3>У вас пока нет заказов</h3>
+  <p class="text-muted">Оформите первый заказ в нашем магазине</p>
+  <a href="{% url 'product-list' %}" class="btn btn-primary">Перейти в каталог</a>
+</div>
+{% endif %}
+{% endblock %}

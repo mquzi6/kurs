@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Корзина — Магазин цифровой техники{% endblock %}
+
+{% block content %}
+<h1 class="h2 mb-4">Корзина</h1>
+
+{% if cart_items %}
+<div class="row">
+  <!-- Список товаров -->
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-body">
+        {% for item in cart_items %}
+        <div class="row align-items-center mb-4 pb-4 {% if not forloop.last %}border-bottom{% endif %}">
+          <!-- Изображение -->
+          <div class="col-md-2">
+            <img src="{{ item.product.image.url|default:'https://via.placeholder.com/100x100?text=No+Image' }}" 
+                 class="img-fluid rounded" alt="{{ item.product.title }}">
+          </div>
+          
+          <!-- Информация о товаре -->
+          <div class="col-md-4">
+            <h6><a href="{% url 'product-detail' item.product.slug %}" class="text-decoration-none">{{ item.product.title }}</a></h6>
+            {% if item.product.category %}
+            <small class="text-muted">{{ item.product.category.name }}</small>
+            {% endif %}
+            {% if item.product.sku %}
+            <br><small class="text-muted">Арт: {{ item.product.sku }}</small>
+            {% endif %}
+          </div>
+          
+          <!-- Цена -->
+          <div class="col-md-2">
+            <span class="fw-bold">{{ item.product.price|floatformat:0 }} ₽</span>
+            {% if item.product.has_discount %}
+            <br><small class="text-muted text-decoration-line-through">{{ item.product.old_price|floatformat:0 }} ₽</small>
+            {% endif %}
+          </div>
+          
+          <!-- Количество -->
+          <div class="col-md-2">
+            <form action="{% url 'cart-update' item.id %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="decrease">
+              <button type="submit" class="btn btn-outline-secondary btn-sm" {% if item.quantity <= 1 %}disabled{% endif %}>−</button>
+            </form>
+            <span class="mx-2">{{ item.quantity }}</span>
+            <form action="{% url 'cart-update' item.id %}" method="post" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="increase">
+              <button type="submit" class="btn btn-outline-secondary btn-sm" {% if item.quantity >= item.product.stock %}disabled{% endif %}>+</button>
+            </form>
+          </div>
+          
+          <!-- Сумма -->
+          <div class="col-md-2 text-end">
+            <strong>{{ item.get_total_price|floatformat:0 }} ₽</strong>
+            <form action="{% url 'cart-remove' item.id %}" method="post" class="d-inline ms-2">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline-danger btn-sm" title="Удалить">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                  <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5M4.5 5.029l.5-1.5h7l.5 1.5zM3 6v7.5a1.5 1.5 0 0 0 1.5 1.5h7a1.5 1.5 0 0 0 1.5-1.5V6H3Z"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  
+  <!-- Итоговая сумма -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Итого</h5>
+        <div class="d-flex justify-content-between mb-2">
+          <span>Товары ({{ item_count }} шт.):</span>
+          <span>{{ total_price|floatformat:0 }} ₽</span>
+        </div>
+        <div class="d-flex justify-content-between mb-3">
+          <span>Доставка:</span>
+          <span class="text-muted">рассчитывается при оформлении</span>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between mb-4">
+          <strong class="h4">Итого:</strong>
+          <strong class="h4">{{ total_price|floatformat:0 }} ₽</strong>
+        </div>
+        <a href="{% url 'checkout' %}" class="btn btn-primary btn-lg w-100">
+          Оформить заказ
+        </a>
+        <a href="{% url 'product-list' %}" class="btn btn-outline-secondary w-100 mt-2">
+          Продолжить покупки
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+  <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" fill="currentColor" class="bi bi-cart-x text-muted mb-3" viewBox="0 0 16 16">
+    <path d="M7.354 5.646 1.646 11.354l1.414 1.414L8.768 7.05l5.708 5.718 1.414-1.414L10.146 5.646l5.708-5.718-1.414-1.414L8.768 4.232 3.06.518 1.646 1.932z"/>
+  </svg>
+  <h3>Ваша корзина пуста</h3>
+  <p class="text-muted">Добавьте товары, которые хотите купить</p>
+  <a href="{% url 'product-list' %}" class="btn btn-primary">Перейти в каталог</a>
+</div>
+{% endif %}
+{% endblock %}

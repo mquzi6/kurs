@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — Магазин цифровой техники{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-6 col-lg-4">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">Регистрация</h2>
+        
+        {% if form.errors %}
+        <div class="alert alert-danger">
+          <strong>Ошибка!</strong>
+          <ul class="mb-0 mt-1">
+            {% for field, errors in form.errors.items %}
+              {% for error in errors %}
+                <li>{{ error }}</li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        
+        <form method="post">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label for="id_username" class="form-label">Имя пользователя</label>
+            <input type="text" name="username" id="id_username" class="form-control" required autofocus>
+            <small class="text-muted">Обязательное поле. Не более 150 символов. Только буквы, цифры и @/./+/-/_</small>
+          </div>
+          <div class="mb-3">
+            <label for="id_password1" class="form-label">Пароль</label>
+            <input type="password" name="password1" id="id_password1" class="form-control" required>
+            <small class="text-muted">Пароль должен содержать не менее 8 символов</small>
+          </div>
+          <div class="mb-3">
+            <label for="id_password2" class="form-label">Подтверждение пароля</label>
+            <input type="password" name="password2" id="id_password2" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Зарегистрироваться</button>
+        </form>
+        
+        <hr class="my-4">
+        
+        <p class="text-center text-muted mb-0">
+          Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
