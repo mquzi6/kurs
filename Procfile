@@ -1,0 +1,1 @@
+web: gunicorn kurs.wsgi:application
