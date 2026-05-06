@@ -3,7 +3,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from .views import (
     CartView, CartAddView, CartUpdateView, CartRemoveView,
     CheckoutView, OrderDetailView, OrderHistoryView,
-    WishlistView, WishlistRemoveView, LogoutView as CustomLogoutView, 
+    WishlistView, WishlistRemoveView,
     SignupView, ReviewCreateView
 )
 
